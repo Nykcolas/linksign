@@ -39,20 +39,27 @@ Sem `.env` o app abre numa tela de setup em vez de quebrar.
 3. Copie a URL e a publishable key (Project Settings → API Keys) para o `.env`.
 4. Crie os usuários da equipe em Authentication → Users. Não há tela de
    cadastro: é ferramenta interna, o acesso é dado manualmente.
-5. Publique as Edge Functions:
+5. Publique as Edge Functions. O `login` abre o navegador, então rode você mesmo:
 
    ```bash
-   supabase functions deploy criar-contrato
-   supabase functions deploy webhook-zapsign --no-verify-jwt
+   npx supabase login
+   npx supabase link --project-ref SEU-REF
 
-   supabase secrets set ZAPSIGN_API_TOKEN=...
-   supabase secrets set ZAPSIGN_BASE_URL=https://sandbox.api.zapsign.com.br/api/v1
-   supabase secrets set WEBHOOK_SECRET=$(openssl rand -hex 24)
-   supabase secrets set APP_ORIGIN=https://linksign.pages.dev
+   npm run deploy:functions
    ```
 
-   O `--no-verify-jwt` do webhook é necessário porque quem chama é a ZapSign,
-   não um usuário logado — por isso ele é protegido pelo segredo na URL.
+   O `verify_jwt = false` do webhook está em `supabase/config.toml`: quem chama
+   é a ZapSign, não um usuário logado — por isso ele é protegido pelo segredo
+   na URL.
+
+   Depois configure os segredos, que é de onde as funções leem (nunca do `.env`):
+
+   ```bash
+   npx supabase secrets set ZAPSIGN_API_TOKEN=...
+   npx supabase secrets set ZAPSIGN_BASE_URL=https://sandbox.api.zapsign.com.br/api/v1
+   npx supabase secrets set WEBHOOK_SECRET=$(openssl rand -hex 24)
+   npx supabase secrets set APP_ORIGIN=http://localhost:5173
+   ```
 
 6. No painel da ZapSign, aponte o webhook para:
 

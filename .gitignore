@@ -26,3 +26,7 @@ dist-ssr
 # variáveis de ambiente
 .env
 .env.local
+
+# supabase cli
+.branches
+.temp
