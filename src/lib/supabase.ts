@@ -2,7 +2,10 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../types'
 
 const url = import.meta.env.VITE_SUPABASE_URL
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Projetos novos usam a publishable key (`sb_publishable_…`); a anon key fica
+// como alternativa para projetos criados antes da troca de formato.
+const key =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY
 
 /** Sem projeto Supabase configurado o app mostra a tela de setup em vez de quebrar. */
 export const isConfigured = Boolean(url && key)

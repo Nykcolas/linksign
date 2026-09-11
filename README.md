@@ -36,7 +36,7 @@ Sem `.env` o app abre numa tela de setup em vez de quebrar.
 
 1. Crie um projeto em [supabase.com](https://supabase.com).
 2. Rode as migrations de `supabase/migrations/` no SQL Editor, na ordem.
-3. Copie URL e `anon key` (Project Settings → API) para o `.env`.
+3. Copie a URL e a publishable key (Project Settings → API Keys) para o `.env`.
 4. Crie os usuários da equipe em Authentication → Users. Não há tela de
    cadastro: é ferramenta interna, o acesso é dado manualmente.
 5. Publique as Edge Functions:
