@@ -4,14 +4,14 @@
 // que conhece o token da ZapSign. Ele nunca sai do servidor.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { cors, json } from '../_shared/cors.ts'
+import { corsHeaders, json } from '../_shared/cors.ts'
 import { createDocument } from '../_shared/zapsign.ts'
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
 
   const auth = req.headers.get('Authorization')
-  if (!auth) return json({ error: 'não autenticado' }, 401)
+  if (!auth) return json(req, { error: 'não autenticado' }, 401)
 
   const admin = createClient(
     Deno.env.get('SUPABASE_URL')!,
@@ -25,11 +25,11 @@ Deno.serve(async (req) => {
     { global: { headers: { Authorization: auth } } },
   ).auth.getUser()
 
-  if (!user?.user) return json({ error: 'não autenticado' }, 401)
+  if (!user?.user) return json(req, { error: 'não autenticado' }, 401)
 
   const { contractId, base64Pdf } = await req.json()
   if (!contractId || !base64Pdf) {
-    return json({ error: 'contractId e base64Pdf são obrigatórios' }, 400)
+    return json(req, { error: 'contractId e base64Pdf são obrigatórios' }, 400)
   }
 
   const { data: contract, error } = await admin
@@ -38,9 +38,9 @@ Deno.serve(async (req) => {
     .eq('id', contractId)
     .single()
 
-  if (error || !contract) return json({ error: 'contrato não encontrado' }, 404)
+  if (error || !contract) return json(req, { error: 'contrato não encontrado' }, 404)
   if (contract.status !== 'draft') {
-    return json({ error: `contrato já está em ${contract.status}` }, 409)
+    return json(req, { error: `contrato já está em ${contract.status}` }, 409)
   }
 
   try {
@@ -60,9 +60,9 @@ Deno.serve(async (req) => {
       })
       .eq('id', contractId)
 
-    return json({ signUrl: doc.signUrl, externalId: doc.externalId })
+    return json(req, { signUrl: doc.signUrl, externalId: doc.externalId })
   } catch (e) {
     console.error('falha ao criar documento na ZapSign', e)
-    return json({ error: 'falha ao enviar para assinatura' }, 502)
+    return json(req, { error: 'falha ao enviar para assinatura' }, 502)
   }
 })
