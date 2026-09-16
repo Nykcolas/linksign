@@ -5,10 +5,15 @@ export type ContractStatus =
   | 'cancelled'
   | 'expired'
 
+import type { TemplateField } from './lib/fields'
+
 export type ContractTemplate = {
   id: string
   name: string
+  /** HTML do editor. Modelos antigos podem ser texto puro ou Markdown. */
   content: string
+  /** Vazio em modelos antigos: os campos são deduzidos do texto. */
+  fields: TemplateField[]
   created_at: string
   updated_at: string
 }

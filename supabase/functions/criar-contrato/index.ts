@@ -1,11 +1,11 @@
 // Envia um contrato em draft para assinatura.
 //
 // O app manda o id do contrato e o PDF já renderizado; esta função é a única
-// que conhece o token da ZapSign. Ele nunca sai do servidor.
+// que conhece o token da Autentique. Ele nunca sai do servidor.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { SANDBOX, createDocument } from '../_shared/autentique.ts'
 import { corsHeaders, json } from '../_shared/cors.ts'
-import { createDocument } from '../_shared/zapsign.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders(req) })
@@ -48,7 +48,6 @@ Deno.serve(async (req) => {
       name: `${contract.client_name} — ${contractId.slice(0, 8)}`,
       base64Pdf,
       signerName: contract.client_name,
-      signerEmail: contract.client_email,
     })
 
     await admin
@@ -60,9 +59,9 @@ Deno.serve(async (req) => {
       })
       .eq('id', contractId)
 
-    return json(req, { signUrl: doc.signUrl, externalId: doc.externalId })
+    return json(req, { signUrl: doc.signUrl, externalId: doc.externalId, sandbox: SANDBOX })
   } catch (e) {
-    console.error('falha ao criar documento na ZapSign', e)
+    console.error('falha ao criar documento na Autentique', e)
     return json(req, { error: 'falha ao enviar para assinatura' }, 502)
   }
 })

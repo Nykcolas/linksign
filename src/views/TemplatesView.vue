@@ -27,6 +27,8 @@ async function duplicate(template: ContractTemplate) {
   await supabase.from('contract_templates').insert({
     name: `${template.name} (cópia)`,
     content: template.content,
+    // Sem a migration 0003 a coluna não existe; aí o modelo é copiado sem ela.
+    ...(template.fields ? { fields: template.fields } : {}),
   })
   load()
 }
@@ -38,7 +40,7 @@ onMounted(load)
 
 <template>
   <h1>Modelos</h1>
-  <p class="subtitle">Os textos-base dos contratos, com as variáveis que o formulário vai preencher.</p>
+  <p class="subtitle">Os textos-base dos contratos, com os campos que o formulário vai preencher.</p>
 
   <p v-if="loading" class="empty">Carregando…</p>
 
@@ -52,7 +54,7 @@ onMounted(load)
         <div class="name">{{ template.name }}</div>
         <div class="meta">
           Atualizado em {{ formatDate(template.updated_at) }} ·
-          {{ extractVariables(template.content).length }} variáveis
+          {{ template.fields?.length || extractVariables(template.content).length }} campos
         </div>
       </div>
       <RouterLink :to="`/modelos/${template.id}`"><button class="link">Editar</button></RouterLink>

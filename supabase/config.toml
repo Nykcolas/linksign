@@ -418,6 +418,6 @@ enabled = true
 enabled = true
 verify_jwt = true
 
-[functions.webhook-zapsign]
+[functions.webhook-autentique]
 enabled = true
 verify_jwt = false
