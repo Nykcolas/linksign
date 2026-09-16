@@ -37,8 +37,13 @@ async function remove(contract: Contract) {
     .eq('id', contract.id)
     .eq('status', 'draft')
     .select('id')
-  if (err || !data?.length) {
-    error.value = 'Não foi possível excluir: só rascunhos podem ser excluídos.'
+  // Sem policy de delete o RLS não dá erro: só apaga zero linhas.
+  if (err) {
+    error.value = `Não foi possível excluir: ${err.message}`
+  } else if (!data?.length) {
+    error.value =
+      'Nenhuma linha foi excluída. Se o contrato ainda é rascunho, falta aplicar a migration ' +
+      '0004_draft_edit_delete.sql no Supabase.'
   }
   load()
 }
