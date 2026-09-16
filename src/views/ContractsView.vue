@@ -5,6 +5,7 @@ import { STATUS_LABEL, type Contract } from '../types'
 
 const contracts = ref<Contract[]>([])
 const loading = ref(true)
+const error = ref('')
 
 async function load() {
   loading.value = true
@@ -26,6 +27,22 @@ async function download(contract: Contract) {
   if (data) window.open(data.signedUrl, '_blank')
 }
 
+/** Só rascunhos: o RLS recusa o resto, e o filtro de status evita apagar um que acabou de ser enviado. */
+async function remove(contract: Contract) {
+  if (!confirm(`Excluir o rascunho de "${contract.client_name}"?`)) return
+  error.value = ''
+  const { data, error: err } = await supabase
+    .from('contracts')
+    .delete()
+    .eq('id', contract.id)
+    .eq('status', 'draft')
+    .select('id')
+  if (err || !data?.length) {
+    error.value = 'Não foi possível excluir: só rascunhos podem ser excluídos.'
+  }
+  load()
+}
+
 const formatDate = (iso: string) => new Date(iso).toLocaleDateString('pt-BR')
 
 onMounted(load)
@@ -35,6 +52,8 @@ onMounted(load)
   <h1>Contratos</h1>
   <p class="subtitle">Tudo que já foi gerado, e onde ficam os PDFs assinados.</p>
 
+  <div v-if="error" class="alert error">{{ error }}</div>
+
   <p v-if="loading" class="empty">Carregando…</p>
 
   <template v-else>
@@ -42,7 +61,7 @@ onMounted(load)
 
     <div v-for="contract in contracts" :key="contract.id" class="row">
       <div class="grow">
-        <div class="name">{{ contract.client_name }}</div>
+        <div class="name">{{ contract.client_name || 'Sem nome' }}</div>
         <div class="meta">{{ formatDate(contract.created_at) }} · {{ contract.client_email }}</div>
       </div>
 
@@ -59,6 +78,17 @@ onMounted(load)
       >
         <button class="link">Link</button>
       </a>
+
+      <!-- Enviado não muda mais: editar e excluir só valem para rascunho. -->
+      <template v-if="contract.status === 'draft'">
+        <RouterLink :to="`/novo-contrato?rascunho=${contract.id}`">
+          <button class="link">Editar</button>
+        </RouterLink>
+        <button class="link danger" @click="remove(contract)">Excluir</button>
+      </template>
+      <RouterLink v-else :to="`/novo-contrato?copiar=${contract.id}`">
+        <button class="link">Reaproveitar</button>
+      </RouterLink>
     </div>
   </template>
 </template>
